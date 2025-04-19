@@ -24,7 +24,8 @@ mainmenu_option next_comment
 	choice 'SSD disk driver' \
 		"None CONFIG_BLK_DEV_SSD_NONE \
 		ssd_test CONFIG_BLK_DEV_SSD_TEST \
-		ssd_sd_8018x CONFIG_BLK_DEV_SSD_SD8018X " None
+		ssd_sd_8018x CONFIG_BLK_DEV_SSD_SD8018X \
+		ssd_sd_nileswan CONFIG_BLK_DEV_SSD_NILESWAN " None
 
     comment 'Block device options'
     bool 'Character access to block devices'	CONFIG_BLK_DEV_CHAR	y

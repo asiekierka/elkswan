@@ -25,8 +25,8 @@
 #include <linuxmt/debug.h>
 #include <linuxmt/memory.h>
 #include "arch/io.h"
+#include "spi.h"
 #include "ssd.h"
-#include "spi-8018x.h"
 
 enum SdR1Flags {
     IDLE = 1,
