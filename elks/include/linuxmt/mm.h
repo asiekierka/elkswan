@@ -62,6 +62,11 @@ void seg_put (segment_s *);
 segment_s * seg_dup (segment_s *);
 void seg_free_pid(pid_t pid);
 
+#ifdef SETUP_MEM_BANKS
+unsigned char seg_find_free_bank (void);
+segment_s * seg_dup_bank (segment_s *, unsigned char);
+#endif
+
 extern list_s _seg_all;
 
 #endif /* __KERNEL__ */

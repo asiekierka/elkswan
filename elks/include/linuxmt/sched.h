@@ -40,6 +40,9 @@ struct task_struct {
     segoff_t                    t_begstack; /* start SP, argc/argv strings above */
     segoff_t                    t_endseg;   /* end of data seg (data+bss+heap+stack) */
     segoff_t                    t_minstack; /* min stack size */
+#ifdef SETUP_MEM_BANKS
+    unsigned char               t_membank;  /* memory bank */
+#endif
 
 /* Kernel info */
     pid_t                       pid;

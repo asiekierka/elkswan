@@ -53,3 +53,5 @@
 #define AUD_CH1_VOL_PORT 0x88
 #define AUD_CONTROL_PORT 0x90
 #define AUD_OUTPUT_PORT 0x91
+
+#define BANK_RAM_PORT 0xC1

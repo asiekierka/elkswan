@@ -37,6 +37,10 @@ include $(BASEDIR)/Makefile-rules
 
 OBJS  = malloc.o user.o memcpyfs.o xms.o
 
+ifeq ($(CONFIG_ARCH_SWAN), y)
+OBJS += bank-swan.o
+endif
+
 #########################################################################
 # Commands.
 

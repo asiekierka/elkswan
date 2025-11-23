@@ -93,12 +93,27 @@ void kfork_proc(void (*addr)())
 
 void put_ustack(register struct task_struct *t,int off,int val)
 {
+#ifdef SETUP_MEM_BANKS
+    unsigned char old_bank = bank_get_current();
+    bank_set_current(t->t_membank);
     pokew(t->t_regs.sp+off, t->t_regs.ss, (word_t) val);
+    bank_set_current(old_bank);
+#else
+    pokew(t->t_regs.sp+off, t->t_regs.ss, (word_t) val);
+#endif
 }
 
 unsigned get_ustack(register struct task_struct *t,int off)
 {
+#ifdef SETUP_MEM_BANKS
+    unsigned char old_bank = bank_get_current();
+    bank_set_current(t->t_membank);
+    unsigned result = peekw(t->t_regs.sp+off, t->t_regs.ss);
+    bank_set_current(old_bank);
+    return result;
+#else
     return peekw(t->t_regs.sp+off, t->t_regs.ss);
+#endif
 }
 
 /*

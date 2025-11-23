@@ -260,7 +260,8 @@ int main(int argc, char **argv)
                             + getword(fd, (word_t)dseg+offsetof(struct segment, size), ds);
             printf("%6ld ", (long)size << 4);
 
-            process_name(fd, task_table.t_begstack, task_table.t_regs.ss);
+            // FIXME
+            // process_name(fd, task_table.t_begstack, task_table.t_regs.ss);
         }
         printf("\n");
     }
