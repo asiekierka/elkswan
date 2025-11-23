@@ -123,6 +123,7 @@
 #define UTS_MACHINE             "swan"
 #define SETUP_HEAPSIZE          32256   /* 0x8000 - 0xFDFF */
 #define SETUP_USERHEAPSEG       0x1000  /* start segment for appiication memory heap */
+#define SETUP_MEM_BANKS         8       /* memory bank count */
 #endif /* CONFIG_ARCH_SWAN */
 
 #ifdef CONFIG_ARCH_SOLO86

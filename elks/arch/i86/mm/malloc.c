@@ -11,6 +11,9 @@
 #include <linuxmt/debug.h>
 #include <linuxmt/heap.h>
 
+#ifdef CONFIG_ARCH_SWAN
+#include <arch/io.h>
+#endif
 #include <arch/segment.h>
 
 // Minimal segment size to be useful
@@ -24,9 +27,17 @@
 // and to ease the 286 protected mode
 // whenever that mode comes back one day
 
+#ifdef SETUP_MEM_BANKS
+list_s __seg_all[SETUP_MEM_BANKS];
+static list_s __seg_free[SETUP_MEM_BANKS];
+
+// Each RAM bank operates on its own linked list
+#define _seg_all (__seg_all[bank_get_current()])
+#define _seg_free (__seg_free[bank_get_current()])
+#else
 list_s _seg_all;
 static list_s _seg_free;
-
+#endif
 
 // Split segment if enough large
 
@@ -226,6 +237,54 @@ segment_s * seg_dup (segment_s * src)
     return dst;
 }
 
+#ifdef SETUP_MEM_BANKS
+unsigned char seg_find_free_bank (void)
+{
+    unsigned char next_bank = 0;
+    unsigned int next_bank_left = 0;
+
+    for (int i = bank_get_maximum(); i >= 0; i--) {
+        unsigned int free = 0;
+        list_s * n = __seg_all[i].next;
+
+        while (n != &__seg_all[i]) {
+            segment_s * seg = structof (n, segment_s, all);
+
+            if (seg->flags == SEG_FLAG_FREE)
+                free += seg->size;
+
+            n = seg->all.next;
+        }
+
+        if (free > next_bank_left) {
+            next_bank = i;
+            next_bank_left = free;
+        }
+    }
+
+    printk("selected bank %d (%d free)\n", next_bank, next_bank_left);
+    return next_bank;
+}
+
+segment_s * seg_dup_bank (segment_s * src, bank_t bank)
+{
+    unsigned int size = src->size;
+    unsigned int flags = src->flags;
+
+    bank_t cur_bank = bank_get_current();
+    if (bank == cur_bank)
+        return seg_dup(src);
+    bank_set_current(bank);
+
+    segment_s * dst = seg_free_get (size, flags);
+    if (dst)
+        bank_seg_copy(dst->base, bank, src->base, cur_bank, size);
+
+    bank_set_current(cur_bank);
+    return dst;
+}
+#endif
+
 
 // Get memory information (free and used) in KB
 
@@ -421,8 +480,15 @@ void INITPROC seg_add(seg_t start, seg_t end)
 
 void INITPROC mm_init(seg_t start, seg_t end)
 {
+#ifdef SETUP_MEM_BANKS
+    for (int i = bank_get_maximum(); i >= 0; i--) {
+        bank_set_current(i);
+#endif
     list_init (&_seg_all);
     list_init (&_seg_free);
 
     seg_add(start, end);
+#ifdef SETUP_MEM_BANKS
+    }
+#endif
 }

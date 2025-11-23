@@ -77,4 +77,23 @@ typedef seg_t ramdesc_t;	/* ramdesc_t is just a regular segment descriptor */
 
 #endif /* CONFIG_FS_XMS */
 
+#ifdef SETUP_MEM_BANKS
+byte_t bank_peekb (bank_t bank, word_t off, seg_t seg);
+word_t bank_peekw (bank_t bank, word_t off, seg_t seg);
+long_t bank_peekl (bank_t bank, word_t off, seg_t seg);
+
+void bank_pokeb (bank_t bank, word_t off, seg_t seg, byte_t val);
+void bank_pokew (bank_t bank, word_t off, seg_t seg, word_t val);
+void bank_pokel (bank_t bank, word_t off, seg_t seg, long_t val);
+#else
+#define bank_peekb(bank, off, seg) peekb(off, seg)
+#define bank_peekw(bank, off, seg) peekw(off, seg)
+#define bank_peekl(bank, off, seg) peekl(off, seg)
+
+#define bank_pokeb(bank, off, seg, val) pokeb(off, seg, val)
+#define bank_pokew(bank, off, seg, val) pokew(off, seg, val)
+#define bank_pokel(bank, off, seg, val) pokel(off, seg, val)
+#endif /* SETUP_MEM_BANKS */
+
+
 #endif

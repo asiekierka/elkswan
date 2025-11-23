@@ -18,6 +18,7 @@ typedef __u8                    byte_t;
 typedef __u16                   word_t;
 typedef __u32                   long_t;
 
+typedef __u8                    bank_t;     /* memory bank value */
 typedef __u16                   seg_t;      /* segment value */
 typedef __u16                   segext_t;   /* paragraph count */
 typedef __u16                   segoff_t;   /* offset in segment */

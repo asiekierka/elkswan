@@ -45,6 +45,8 @@ unsigned int INITPROC setup_arch(void)
     arch_cpu = SETUP_CPU_TYPE;
     sys_caps = SYS_CAPS;    /* custom system capabilities */
 
+    bank_set_current(0);
+
     return heapofs;                      /* used as start address in near heap init */
 }
 
