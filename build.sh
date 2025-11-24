@@ -36,9 +36,8 @@ fi
 if [ "$1" = "auto" ]; then
 	echo "Invoking 'make defconfig'..."
 	make defconfig || clean_exit 2
-	echo "Building IBM PC image..."
-	#cp ibmpc-1440.config .config
-	cp ibmpc-1440-nc.config .config
+        echo "Building Swan image..."
+        cp swan.config .config
 else
 	echo
 	echo "Now invoking 'make menuconfig' for you to configure the system."
@@ -62,47 +61,6 @@ if [ "$1" != "auto" ]; then
 
 echo "Building all..."
 make -j1 all || clean_exit 5
-
-# Possibly build all images
-
-if [ "$2" = "allimages" ]; then
-	echo "Building all images..."
-	cd image
-	make -j1 images || clean_exit 6
-	cd ..
-fi
-
-# Build 8018X kernel and image
-if [ "$1" = "auto" ]; then
-    echo "Building 8018X image..."
-    cp 8018x.config .config
-    make kclean || clean_exit 7
-    rm elkscmd/basic/*.o
-    make -j1 || clean_exit 8
-fi
-
-# Build NEC V25 kernel and image
-if [ "$1" = "auto" ]; then
-    echo "Building NECV 25 image..."
-    cp necv25.config .config
-    make kclean || clean_exit 7
-    rm elkscmd/basic/*.o
-    make -j1 || clean_exit 8
-fi
-
-# Build PC-98 kernel, some user land files and image
-if [ "$1" = "auto" ]; then
-    echo "Building PC-98 image..."
-    cp pc98-1232.config .config
-    make kclean || clean_exit 9
-    rm bootblocks/*.o
-    rm elkscmd/sys_utils/clock.o
-    rm elkscmd/sys_utils/ps.o
-    rm elkscmd/sys_utils/meminfo.o
-    rm elkscmd/sys_utils/beep.o
-    rm elkscmd/basic/*.o
-    make -j1 || clean_exit 10
-fi
 
 # Success
 
