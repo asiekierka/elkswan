@@ -23,4 +23,9 @@ void bank_set_current(unsigned char bank)
 {
     outb(bank & bank_get_maximum(), BANK_RAM_PORT);
 }
+
+int bank_seg_is_rom(seg_t seg)
+{
+    return seg >= 0x2000;
+}
 #endif

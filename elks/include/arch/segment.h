@@ -15,6 +15,7 @@ extern unsigned int heapsize;
 unsigned char bank_get_maximum(void);
 unsigned char bank_get_current(void);
 void bank_set_current(unsigned char);
+int bank_seg_is_rom(seg_t seg);
 #endif
 
 #endif

@@ -140,6 +140,12 @@ segment_s * seg_alloc (segext_t size, word_t type)
 
 void seg_free (segment_s * seg)
 {
+    // Handle segments created outside of the memory allocator.
+    if (seg->all.prev == NULL && seg->all.next == NULL) {
+        heap_free(seg);
+        return;
+    }
+
     // Free segment will be inserted to free list:
     //   - tail if merged to previous or next free segment
     //   - head if still alone to increase 'exact hit'
