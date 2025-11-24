@@ -72,8 +72,10 @@ static size_t kmem_read(struct inode *inode, struct file *filp, char *data, size
 {
     seg_t sseg = (unsigned long)filp->f_pos >> 4;
     segext_t soff = filp->f_pos & 0x0F;
+    // FIXME: This gets optimized out if not volatile...
+    volatile bank_t sbank = (unsigned long)filp->f_pos >> 20;
 
-    fmemcpyb((byte_t *)data, current->t_regs.ds, (byte_t *)soff, sseg, (word_t) len);
+    bank_memcpyb((byte_t *)data, current->t_regs.ds, current->t_membank, (byte_t *)soff, sseg, sbank, (word_t) len);
     filp->f_pos += len;
     return len;
 }
@@ -82,9 +84,11 @@ static size_t kmem_write(struct inode *inode, struct file *filp, char *data, siz
 {
     seg_t dseg = (unsigned long)filp->f_pos >> 4;
     segext_t doff = filp->f_pos & 0x0F;
+    // FIXME: This gets optimized out if not volatile...
+    volatile bank_t dbank = (unsigned long)filp->f_pos >> 20;
 
     /* FIXME: very dangerous! */
-    fmemcpyb((byte_t *)doff, dseg, (byte_t *)data, current->t_regs.ds, (word_t) len);
+    bank_memcpyb((byte_t *)doff, dseg, dbank, (byte_t *)data, current->t_regs.ds, current->t_membank, (word_t) len);
     filp->f_pos += len;
     return len;
 }

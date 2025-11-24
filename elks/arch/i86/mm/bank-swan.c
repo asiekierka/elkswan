@@ -35,11 +35,35 @@ void bank_seg_copy(seg_t dstseg, bank_t dstb, seg_t srcseg, bank_t srcb, size_t 
     dstb &= bank_get_maximum();
 
     // TODO: Optimize.
-    for (unsigned int i = 0; i < (paras << 3); i++) {
+    for (size_t i = 0; i < (paras << 3); i++) {
         asm volatile ("" ::: "memory");
         outb(srcb, BANK_RAM_PORT);
         asm volatile ("" ::: "memory");
         unsigned int c = srcp[i];
+        asm volatile ("" ::: "memory");
+        outb(dstb, BANK_RAM_PORT);
+        asm volatile ("" ::: "memory");
+        destp[i] = c;
+    }
+
+    bank_set_current(cur_bank);
+}
+
+void bank_memcpyb(byte_t *dstoff, seg_t dstseg, bank_t dstb, byte_t *srcoff, seg_t srcseg, bank_t srcb, size_t count) {
+    bank_t cur_bank = bank_get_current();
+
+    const unsigned char __far *srcp = _MK_FP(srcseg, (word_t) srcoff);
+    unsigned char __far *destp = _MK_FP(dstseg, (word_t) dstoff);
+
+    srcb &= bank_get_maximum();
+    dstb &= bank_get_maximum();
+
+    // TODO: Optimize.
+    for (size_t i = 0; i < count; i++) {
+        asm volatile ("" ::: "memory");
+        outb(srcb, BANK_RAM_PORT);
+        asm volatile ("" ::: "memory");
+        unsigned char c = srcp[i];
         asm volatile ("" ::: "memory");
         outb(dstb, BANK_RAM_PORT);
         asm volatile ("" ::: "memory");

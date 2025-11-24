@@ -85,6 +85,8 @@ long_t bank_peekl (bank_t bank, word_t off, seg_t seg);
 void bank_pokeb (bank_t bank, word_t off, seg_t seg, byte_t val);
 void bank_pokew (bank_t bank, word_t off, seg_t seg, word_t val);
 void bank_pokel (bank_t bank, word_t off, seg_t seg, long_t val);
+
+void bank_memcpyb(byte_t *dstoff, seg_t dstseg, bank_t dstb, byte_t *srcoff, seg_t srcseg, bank_t srcb, size_t count);
 #else
 #define bank_peekb(bank, off, seg) peekb(off, seg)
 #define bank_peekw(bank, off, seg) peekw(off, seg)
@@ -93,6 +95,8 @@ void bank_pokel (bank_t bank, word_t off, seg_t seg, long_t val);
 #define bank_pokeb(bank, off, seg, val) pokeb(off, seg, val)
 #define bank_pokew(bank, off, seg, val) pokew(off, seg, val)
 #define bank_pokel(bank, off, seg, val) pokel(off, seg, val)
+
+#define bank_memcpyb(dstoff, dstseg, dstb, srcoff, srcseg, srcb, count) fmemcpyb(dstoff, dstseg, srcoff, srcseg, count)
 #endif /* SETUP_MEM_BANKS */
 
 
