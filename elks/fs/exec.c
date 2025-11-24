@@ -56,7 +56,7 @@
 static int FARPROC execve_aout(struct inode *inode, struct file *filp,
     char *sptr, size_t slen);
 static void FARPROC finalize_exec(struct inode *inode, segment_s *seg_code,
-    segment_s *seg_data, word_t entry, int multisegment);
+    seg_t seg_code_base, segment_s *seg_data, word_t entry, int multisegment);
 
 #ifdef CONFIG_EXEC_OS2
 static int FARPROC execve_os2(struct inode *inode, struct file *filp,
@@ -196,6 +196,7 @@ static int FARPROC execve_aout(struct inode *inode, struct file *filp,
     seg_t ds = current->t_regs.ds;
     seg_t base_data = 0;
     segment_s * seg_code;
+    seg_t seg_code_base;
     segment_s * seg_data;
     size_t len, min_len, heap, stack = 0;
     size_t bytes;
@@ -298,9 +299,9 @@ static int FARPROC execve_aout(struct inode *inode, struct file *filp,
             }
         }
         heap = mh.chmem? mh.chmem: INIT_HEAP;
-        if (heap >= 0xFFF0) {                           /* max heap specified*/
-            if (len < 0xFFF0)                           /* len could be near overflow from above*/
-                len = 0xFFF0;
+        if (heap >= 0x6FF0) {                           /* max heap specified*/
+            if (len < 0x6FF0)                           /* len could be near overflow from above*/
+                len = 0x6FF0;
         } else {
             if (add_overflow(len, heap, &len)) {        /* add heap */
                 retval = -EFBIG;
@@ -352,6 +353,21 @@ static int FARPROC execve_aout(struct inode *inode, struct file *filp,
     /*
      *      Looks good. Get the memory we need
      */
+#ifdef CONFIG_ROMFS_FS
+    if (filp->f_inode && filp->f_inode->i_sb && filp->f_inode->i_sb->s_type->type == FST_ROMFS
+        && !(filp->f_pos & 15)
+#ifdef CONFIG_EXEC_COMPRESS
+        && !(esuph.esh_compr_tseg || esuph.esh_compr_ftseg)
+#endif
+#ifdef CONFIG_EXEC_MMODEL
+        && !esuph.esh_ftseg
+#endif
+    ) {
+        // Point the code segment directly to in-memory ROMFS.
+        seg_code_base = filp->f_inode->u.romfs.seg + (filp->f_pos >> 4);
+        filp->f_pos += (size_t)mh.tseg;
+    } else
+#endif
     if (!seg_code) {
         bytes = (size_t)mh.tseg;
         paras = bytes_to_paras(bytes);
@@ -469,6 +485,9 @@ static int FARPROC execve_aout(struct inode *inode, struct file *filp,
 
     /* From this point, exec() will surely succeed */
 
+    if (seg_code)
+        seg_code_base = seg_code->base;
+
     /* clear bss */
     if ((size_t)mh.bseg)
         fmemsetb((char *)(size_t)mh.dseg + base_data, seg_data->base, 0, (size_t)mh.bseg);
@@ -480,14 +499,15 @@ static int FARPROC execve_aout(struct inode *inode, struct file *filp,
     currentp->t_begstack = (currentp->t_endseg - slen) & ~1; /* force even SP and argv */
     fmemcpyb((char *)currentp->t_begstack, seg_data->base, sptr, ds, slen);
 
-    finalize_exec(inode, seg_code, seg_data, (word_t)mh.entry, 0);
+    finalize_exec(inode, seg_code, seg_code_base, seg_data, (word_t)mh.entry, 0);
     return 0;           /* success */
 
   error_exec5:
     seg_put (seg_data);
 
   error_exec4:
-    seg_put (seg_code);
+    if (seg_code)
+        seg_put (seg_code);
 
   error_exec3:
     current->t_regs.ds = ds;
@@ -497,7 +517,7 @@ static int FARPROC execve_aout(struct inode *inode, struct file *filp,
 }
 
 /* seg_code is entry code segment, seg_data is main (auto stack/heap) data segment */
-static void FARPROC finalize_exec(struct inode *inode, segment_s *seg_code,
+static void FARPROC finalize_exec(struct inode *inode, segment_s *seg_code, seg_t seg_code_base,
     segment_s *seg_data, word_t entry, int multisegment)
 {
     struct task_struct *currentp = current;
@@ -522,7 +542,7 @@ static void FARPROC finalize_exec(struct inode *inode, segment_s *seg_code,
         currentp->mm[SEG_DATA] = seg_data;
     }
 
-    currentp->t_xregs.cs = seg_code->base;
+    currentp->t_xregs.cs = seg_code ? seg_code->base : seg_code_base;
     currentp->t_regs.ss = currentp->t_regs.es = currentp->t_regs.ds = seg_data->base;
     currentp->t_regs.sp = currentp->t_begstack;
 
@@ -760,7 +780,7 @@ static int FARPROC execve_os2(struct inode *inode, struct file *filp,
     debug_os2("fmemcpy %04x:%04x <- %d\n", seg_data->base, current->t_begstack, slen);
     fmemcpyb((char *)current->t_begstack, seg_data->base, sptr, ds, slen);
 
-    finalize_exec(inode, seg_code, seg_data, os2hdr.reg_ip, 1);
+    finalize_exec(inode, seg_code, seg_code->base, seg_data, os2hdr.reg_ip, 1);
     return 0;       /* success */
 
 errout3:

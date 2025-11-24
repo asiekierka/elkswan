@@ -234,7 +234,7 @@ unsigned char seg_find_free_bank (void)
         }
     }
 
-    printk("selected bank %d (%d free)\n", next_bank, next_bank_left);
+    // printk("selected bank %d (%d free)\n", next_bank, next_bank_left);
     return next_bank;
 }
 
