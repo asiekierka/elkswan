@@ -19,7 +19,7 @@
 
 #define	LISTSIZE	256
 
-#define COLS 80			/* Hardcoded number of columns (Yuck!) */
+#define COLS 56			/* Hardcoded number of columns (Yuck!) */
 
 
 static	char	**list;

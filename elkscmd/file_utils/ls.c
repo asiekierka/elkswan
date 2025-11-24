@@ -49,7 +49,7 @@
 #include <limits.h>
 
 /* klugde */
-#define COLS 80
+#define COLS 56
 
 #ifdef S_ISLNK
 #    define LSTAT lstat
