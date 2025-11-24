@@ -14,6 +14,7 @@
  */
 #define DEBUG_EVENT     1               /* generate debug events on CTRLN-CTRLP*/
 #define DEBUG_LEVEL     0               /* default startup debug level*/
+#define DEBUG_BANK      0               /* bank allocation */
 #define DEBUG_BIOS      0               /* BIOS driver*/
 #define DEBUG_BLK       0               /* block i/o*/
 #define DEBUG_BRK       0               /* sbrk/brk */
@@ -42,6 +43,12 @@ void debug_setcallback(int evnum, void (*cbfunc)()); /* callback on debug event*
 #define dprintk(...)
 #define debug_event(evnum)
 #define debug_setcallback(evnum,cbfunc)
+#endif
+
+#if DEBUG_BANK
+#define debug_bank      printk
+#else
+#define debug_bank(...)
 #endif
 
 #if DEBUG_BIOS
