@@ -298,9 +298,12 @@ static int FARPROC execve_aout(struct inode *inode, struct file *filp,
             }
         }
         heap = mh.chmem? mh.chmem: INIT_HEAP;
-        if (heap >= 0xFFF0) {                           /* max heap specified*/
-            if (len < 0xFFF0)                           /* len could be near overflow from above*/
-                len = 0xFFF0;
+        // FIXME: elkswan hardcodes a maximum heap size here; this should be
+        // dynamic based on the amount of free memory in a bank
+        size_t max_heap = 0x8FF0;
+        if (heap >= max_heap) {                           /* max heap specified*/
+            if (len < max_heap)                           /* len could be near overflow from above*/
+                len = max_heap;
         } else {
             if (add_overflow(len, heap, &len)) {        /* add heap */
                 retval = -EFBIG;
