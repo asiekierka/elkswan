@@ -60,7 +60,7 @@ struct __stdio_file {
 
 typedef struct __stdio_file FILE;
 
-#define BUFSIZ  (1024)
+#define BUFSIZ  (128)
 
 extern FILE stdin[1];
 extern FILE stdout[1];
