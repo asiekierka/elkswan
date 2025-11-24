@@ -24,6 +24,11 @@ void bank_set_current(bank_t bank)
     outb(bank & bank_get_maximum(), BANK_RAM_PORT);
 }
 
+int bank_seg_is_rom(seg_t seg)
+{
+    return seg >= 0x2000;
+}
+
 void bank_seg_copy(seg_t dstseg, bank_t dstb, seg_t srcseg, bank_t srcb, size_t paras)
 {
     bank_t cur_bank = bank_get_current();

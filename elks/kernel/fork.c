@@ -100,7 +100,9 @@ pid_t do_fork(int virtual)
         s = t->mm[j];
         if (s) {
 #ifdef SETUP_MEM_BANKS
-            if (cur_bank != new_bank) {
+            if (bank_seg_is_rom(s->base))
+                seg_get(s);         /* share segments pointing to ROM */
+            else if (cur_bank != new_bank) {
                 t->mm[j] = seg_dup_bank(s, new_bank);
                 if (t->mm[j] == 0) {
                     for (k = 0; k < j; k++)

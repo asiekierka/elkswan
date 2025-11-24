@@ -16,6 +16,7 @@ bank_t bank_get_maximum(void);
 bank_t bank_get_current(void);
 void bank_set_current(bank_t);
 void bank_seg_copy(seg_t dstseg, bank_t dstb, seg_t srcseg, bank_t srcb, size_t paras);
+int bank_seg_is_rom(seg_t seg);
 #endif
 
 #endif
