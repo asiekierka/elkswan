@@ -8,7 +8,7 @@ INCS=$(INCLUDES)
 SDEFS=$(DEFINES)
 CDEFS=$(DEFINES)
 
-ARCH=-ffreestanding -fno-inline -melks -mtune=i8086
+ARCH=-ffreestanding -fno-inline -melks -mtune=v30mz
 ifeq "" "$(filter -mcmodel=%,$(MULTILIB))"
 ARCH+=-mcmodel=small -mno-segment-relocation-stuff
 endif

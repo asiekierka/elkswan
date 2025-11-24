@@ -7,7 +7,7 @@ endif
 
 CC = ia16-elf-gcc
 LD = ia16-elf-gcc
-CLBASE = -melks-libc -mtune=i8086 -mcmodel=small -mno-segment-relocation-stuff
+CLBASE = -melks-libc -mtune=v30mz -mcmodel=small -mno-segment-relocation-stuff
 CLBASE += -fno-inline -fno-builtin-printf -fno-builtin-fprintf
 OPTFLAGS = -O2
 OPTFLAGS += -fno-align-jumps
