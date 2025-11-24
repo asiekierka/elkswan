@@ -7,8 +7,8 @@
 /*
  * Compile-time configuration
  */
-#define UTS_SYSNAME "ELKS"                      /* uname system name */
-#define UTS_NODENAME "elks"                     /* someday set by sethostname() */
+#define UTS_SYSNAME "elkswan"                      /* uname system name */
+#define UTS_NODENAME "elkswan"                     /* someday set by sethostname() */
 
 #define CONFIG_FS_DEV           1               /* support FAT /dev folder */
 

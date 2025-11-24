@@ -8,4 +8,4 @@ while (<>) {
         /^\s*PRE\s*=\s*(.*)/            && ($pre = $1);
 }
 
-print "\nELKS ${ver}.${pat}.${sub}${pre}\n\n";
+print "\nelkswan ${ver}.${pat}.${sub}${pre}\n\n";
