@@ -213,6 +213,7 @@ static void INITPROC kernel_banner(seg_t init, seg_t extra)
 {
     kernel_banner_arch();
 
+/*
     printk("syscaps %x, %uK base ram, %d tasks, %d files, %d inodes\n",
         sys_caps, SETUP_MEM_KBYTES, max_tasks, nr_file, nr_inode);
     printk("elkswan %s (%u text, %u ftext, %u data, %u bss, %u heap)\n",
@@ -226,6 +227,30 @@ static void INITPROC kernel_banner(seg_t init, seg_t extra)
     printk("data %x end %x top %x %u+%u+%uK free\n",
            kernel_ds, membase, memend, (int) ((memend - membase) >> 6),
            extra >> 6, umbtotal >> 6);
+*/
+
+    // elkswan: customized, simplified kernel banner
+    printk("%d+%dx%dK ram, %d tasks, %d files, %d inodes\n",
+        (int) (membase >> 6), SETUP_MEM_BANKS, (int) ((memend - membase) >> 6),
+        max_tasks, nr_file, nr_inode);
+    printk("elkswan %s (%u text, "
+#ifdef CONFIG_FARTEXT_KERNEL
+        "%u ftext, "
+#endif
+        "%u data, %u bss, %u heap)\n",
+           system_utsname.release,
+           (unsigned)_endtext,
+#ifdef CONFIG_FARTEXT_KERNEL
+           (unsigned)_endftext,
+#endif
+           (unsigned)_enddata,
+           (unsigned)_endbss - (unsigned)_enddata, heapsize);
+    printk("Kernel text %x ", kernel_cs);
+#ifdef CONFIG_FARTEXT_KERNEL
+    printk("ftext %x init %x ", (unsigned)((long)kernel_init >> 16), init);
+#endif
+
+    printk("data %x\n", kernel_ds);
 }
 
 static void INITPROC try_exec_process(const char *path)
