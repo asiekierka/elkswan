@@ -293,6 +293,12 @@ void mm_get_usage (struct mem_usage *mu)
     unsigned int free = 0;
     unsigned int used = 0;
 
+#ifdef SETUP_MEM_BANKS
+    bank_t old_bank = bank_get_current();
+
+    for (int i = bank_get_maximum(); i >= 0; i--) {
+        bank_set_current(i);
+#endif
     list_s * n = _seg_all.next;
 
     while (n != &_seg_all) {
@@ -308,6 +314,11 @@ void mm_get_usage (struct mem_usage *mu)
 
         n = seg->all.next;
     }
+#ifdef SETUP_MEM_BANKS
+    }
+    
+    bank_set_current(old_bank);
+#endif
 
     // Convert paragraphs to kilobytes
     // Floor, not ceiling, so average return
