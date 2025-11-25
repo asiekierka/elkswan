@@ -11,6 +11,7 @@
 #define UTS_NODENAME "elkswan"                     /* someday set by sethostname() */
 
 #define CONFIG_FS_DEV           1               /* support FAT /dev folder */
+#define SETUP_ROMFS_BASE        setupw(0x1fe)
 
 /*
  * SETUP_ defines are initialzied by setup.S and queried only during kernel init.

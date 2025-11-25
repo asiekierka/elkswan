@@ -247,7 +247,7 @@ static void romfs_read_inode (struct inode * i)
 		if (ino >= isb->icount) break;
 
 		off_i = isb->ssize + ino * isb->isize;
-		fmemcpyw (&rim, kernel_ds, (char *)off_i, CONFIG_ROMFS_BASE,
+		fmemcpyw (&rim, kernel_ds, (char *)off_i, SETUP_ROMFS_BASE,
 			sizeof (struct romfs_inode_mem) >> 1);
 
 		i->i_size = rim.size;
@@ -275,7 +275,7 @@ static void romfs_read_inode (struct inode * i)
 			i->i_rdev = (kdev_t) rim.offset;
 		}
 		else {
-			i->u.romfs.seg = CONFIG_ROMFS_BASE + rim.offset;
+			i->u.romfs.seg = SETUP_ROMFS_BASE + rim.offset;
 		}
 
 		i->i_mode = m;
@@ -328,14 +328,14 @@ static struct super_block * romfs_read_super (struct super_block * s, void * dat
 	while (1) {
 		lock_super (s);
 
-		if (fmemcmpw ((void *)ROMFS_MAGIC_STR, kernel_ds, 0, CONFIG_ROMFS_BASE,
+		if (fmemcmpw ((void *)ROMFS_MAGIC_STR, kernel_ds, 0, SETUP_ROMFS_BASE,
           ROMFS_MAGIC_LEN >> 1)) {
-			printk ("romfs: no superblock at %x:0h\n", CONFIG_ROMFS_BASE);
+			printk ("romfs: no superblock at %x:0h\n", SETUP_ROMFS_BASE);
 			res = NULL;
 			break;
 		}
 
-		fmemcpyw (&rsm, kernel_ds, 0, CONFIG_ROMFS_BASE, sizeof (struct romfs_super_mem) >> 1);
+		fmemcpyw (&rsm, kernel_ds, 0, SETUP_ROMFS_BASE, sizeof (struct romfs_super_mem) >> 1);
 		if (rsm.ssize != sizeof (struct romfs_super_mem)) {
 			printk ("romfs: superblock size mismatch\n");
 			res = NULL;

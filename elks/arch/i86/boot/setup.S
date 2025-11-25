@@ -78,6 +78,7 @@
 !	0x1fa:	SVGA_MODE	word UNUSED
 !	0x1fc:	root_dev	word Either BIOS boot device or actual kdev_t ROOT_DEV
 !	0x1fe:	boot_flag	word UNUSED (0xAA55 in real boot sector)
+!   0x1fe:  romfs_base  word ELKSWAN base segment of ROM filesystem
 */
 
 #include <linuxmt/config.h>
@@ -301,6 +302,7 @@ start_os:
 
 #ifdef CONFIG_ROMFS_FS
 	movw $DEV_ROM,root_dev	// ROMFS
+	movw $CONFIG_ROMFS_BASE,boot_flag	// ROMFS base
 #else
 	movw $DEV_FD0,root_dev	// floppy 0
 #endif
