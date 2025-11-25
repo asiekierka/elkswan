@@ -39,7 +39,10 @@ echo
 # Run emulator
 export MEDNAFEN_HOME="$CROSSDIR/etc/mednafen"
 mkdir -p "$MEDNAFEN_HOME"
-exec wf-mednafen -wswan.excomm 1 -wswan.excomm.path $temp/serial.sh image/rom.wsc ${1+"$@"}
+
+tmux new-session -d "exec wf-mednafen -wswan.excomm 1 -wswan.excomm.path "$temp"/serial.sh image/rom.wsc "${1+"$@"}
+tmux split-window -h "sleep 0.5; exec minicom -D "$temp"/ttyS0"
+tmux attach-session
 
 # Clean up
 rm -r $temp
