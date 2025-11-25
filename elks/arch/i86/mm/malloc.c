@@ -28,8 +28,8 @@
 // whenever that mode comes back one day
 
 #ifdef SETUP_MEM_BANKS
-list_s __seg_all[SETUP_MEM_BANKS];
-static list_s __seg_free[SETUP_MEM_BANKS];
+list_s __seg_all[MAX_BANKS];
+static list_s __seg_free[MAX_BANKS];
 
 // Each RAM bank operates on its own linked list
 #define _seg_all (__seg_all[bank_get_current()])

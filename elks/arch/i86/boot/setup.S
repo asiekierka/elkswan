@@ -1494,14 +1494,65 @@ arch_get_mem:
 	ret
 
 // Set INITSEG values for WonderSwan
-// currently hard-coded in config.h
 arch_set_initseg:
-        // Force color mode early to enable 64 KiB RAM
+	push %si
+
+    // Force color mode early to enable 64 KiB RAM
 	mov	$0x80,%al
 	out	%al,$0x60
 
+	// Calculate SRAM size
+	mov $0x1000,%ax
+	mov %ax,%ds
+	mov $0x400,%bx // offset to write at
+	xor %dx,%dx    // SRAM size in kilobytes
+	xor %si,%si
+
+	// Check if SRAM present at all
+	movb $0xAA,(%si)
+	cmpb $0xAA,(%si)
+	jne 3f
+	movb $0x55,(%si)
+	cmpb $0x55,(%si)
+	jne 3f
+
+	inc %dx        // SRAM size in kilobytes
+1:  // Evaluate SRAM size within the 64K segment
+	movb $0xAA,(%bx)
+	cmpb $0xAA,(%bx)
+	jne 3f
+	cmpb $0xAA,(%si)
+	je 3f
+	movb $0x55,(%bx)
+	cmpb $0x55,(%bx)
+	jne 3f
+
+	shl $1,%dx
+	shl $1,%bx
+	jnz 1b
+	
+	// DX = 64K, count number of banks
+2:
+	inc %bl
+	jz 3f
+	mov %bx,%ax
+	out %al,$0xC1
+	mov %bl,(%si)
+	xor %ax,%ax
+	out %al,$0xC1
+	cmp (%si),%bl
+	je 3f
+	add $64,%dx
+	jmp 2b
+
+	// DX = Nx64K
+3:
 	mov	$INITSEG,%ax
 	mov	%ax,%ds
+
+	mov %dx,xms_kbytes
+
+	pop %si
 	ret
 
 // Write AL to console, save all other registers

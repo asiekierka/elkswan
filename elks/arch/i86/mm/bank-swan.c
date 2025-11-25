@@ -11,17 +11,21 @@
 
 bank_t bank_get_maximum(void)
 {
-    return SETUP_MEM_BANKS - 1;
+    int count = SETUP_MEM_BANKS;
+    if (count > MAX_BANKS)
+        return MAX_BANKS - 1;
+    else
+        return count - 1;
 }
 
 bank_t bank_get_current(void)
 {
-    return inb(BANK_RAM_PORT) & bank_get_maximum();
+    return inb(BANK_RAM_PORT);
 }
 
 void bank_set_current(bank_t bank)
 {
-    outb(bank & bank_get_maximum(), BANK_RAM_PORT);
+    outb(bank, BANK_RAM_PORT);
 }
 
 int bank_seg_is_rom(seg_t seg)
@@ -35,9 +39,6 @@ void bank_seg_copy(seg_t dstseg, bank_t dstb, seg_t srcseg, bank_t srcb, size_t 
 
     const unsigned int __far *srcp = _MK_FP(srcseg, 0);
     unsigned int __far *destp = _MK_FP(dstseg, 0);
-
-    srcb &= bank_get_maximum();
-    dstb &= bank_get_maximum();
 
     // TODO: Optimize.
     for (size_t i = 0; i < (paras << 3); i++) {
@@ -59,9 +60,6 @@ void bank_memcpyb(byte_t *dstoff, seg_t dstseg, bank_t dstb, byte_t *srcoff, seg
 
     const unsigned char __far *srcp = _MK_FP(srcseg, (word_t) srcoff);
     unsigned char __far *destp = _MK_FP(dstseg, (word_t) dstoff);
-
-    srcb &= bank_get_maximum();
-    dstb &= bank_get_maximum();
 
     // TODO: Optimize.
     for (size_t i = 0; i < count; i++) {
