@@ -286,13 +286,17 @@ static void INITPROC do_init_task(void)
 #ifdef CONFIG_BOOTOPTS
     /* Release options parsing buffers and setup data seg */
     heap_add(&opts, sizeof(opts));
+#ifdef DMASEG
+    if (DEF_OPTSEG) {
 #ifdef CONFIG_FS_XMS
-    if (xms_enabled == XMS_LOADALL) {
-        seg_add(DEF_OPTSEG, 0x80);  /* carve out LOADALL buf 0x800-0x865 from release! */
-        seg_add(0x87, DMASEG);
-    } else  /* fall through */
+        if (xms_enabled == XMS_LOADALL) {
+            seg_add(DEF_OPTSEG, 0x80);  /* carve out LOADALL buf 0x800-0x865 from release! */
+            seg_add(0x87, DMASEG);
+        } else  /* fall through */
 #endif
-    seg_add(DEF_OPTSEG, DMASEG);    /* DEF_OPTSEG through REL_INITSEG */
+        seg_add(DEF_OPTSEG, DMASEG);    /* DEF_OPTSEG through REL_INITSEG */
+    }
+#endif
 
     /* run /bin/init or init= command w/argc/argv/env, normally no return*/
     run_init_process_sptr(init_command, (char *)argv_init, argv_slen);
@@ -488,13 +492,18 @@ static int INITPROC parse_options(void)
     char *line = (char *)opts.options;
     char *next;
 
+    if (!DEF_OPTSEG)
+        return 0;
     /* copy /bootopts loaded by boot loader at 0050:0000*/
     fmemcpyb(opts.options, kernel_ds, 0, DEF_OPTSEG, sizeof(opts.options));
 
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
     /* check file starts with ##, one or two sectors, max 1023 bytes or 511 one sector */
-    if (*(unsigned short *)opts.options != 0x2323 ||
-        (opts.options[511] && opts.options[OPTSEGSZ-1]))
+    if (*(unsigned short *)opts.options != 0x2323
+#ifndef CONFIG_ARCH_SWAN /* On swan, this can be copied from ROM, so there's no sector alignment guarantee */
+        || (opts.options[511] && opts.options[OPTSEGSZ-1])
+#endif
+    )
         return 0;
 
     next = line;

@@ -78,7 +78,11 @@
 !	0x1fa:	SVGA_MODE	word UNUSED
 !	0x1fc:	root_dev	word Either BIOS boot device or actual kdev_t ROOT_DEV
 !	0x1fe:	boot_flag	word UNUSED (0xAA55 in real boot sector)
-!   0x1fe:  romfs_base  word ELKSWAN base segment of ROM filesystem
+!
+!   elkswan introduces a few modifications to pass additional data via setup:
+!
+!   0x1de:  opt_base    word Base segment of /bootopts
+!   0x1e0:  romfs_base  word Base segment of ROM filesystem
 */
 
 #include <linuxmt/config.h>
@@ -302,7 +306,8 @@ start_os:
 
 #ifdef CONFIG_ROMFS_FS
 	movw $DEV_ROM,root_dev	// ROMFS
-	movw $CONFIG_ROMFS_BASE,boot_flag	// ROMFS base
+	movw $0,opt_base
+	movw $CONFIG_ROMFS_BASE,romfs_base
 #else
 	movw $DEV_FD0,root_dev	// floppy 0
 #endif
@@ -957,6 +962,7 @@ putc:	push %ax
 
 
 #ifdef CONFIG_BOOTOPTS
+#ifndef CONFIG_ARCH_SWAN
 //
 // load /bootopts file for FAT filesystem boot
 //      If size > 512 bytes, both sectors must be contiguous.
@@ -1232,6 +1238,7 @@ checkhma:
 2:	pop	%ds
 	ret
 
+#endif /* ifndef CONFIG_ARCH_SWAN */
 #endif /* ifdef CONFIG_BOOTOPTS */
 
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

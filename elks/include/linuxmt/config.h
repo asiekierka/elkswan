@@ -11,7 +11,7 @@
 #define UTS_NODENAME "elkswan"                     /* someday set by sethostname() */
 
 #define CONFIG_FS_DEV           1               /* support FAT /dev folder */
-#define SETUP_ROMFS_BASE        setupw(0x1fe)
+#define SETUP_ROMFS_BASE        setupw(0x1e0)
 
 /*
  * SETUP_ defines are initialzied by setup.S and queried only during kernel init.
@@ -110,8 +110,8 @@
 #endif /* CONFIG_ARCH_NECV25 */
 
 #ifdef CONFIG_ARCH_SWAN
-#define MAX_SERIAL              1       /* max number of serial tty devices*/
-#define SETUP_VID_COLS          28      /* video # columns */
+#define MAX_SERIAL              2       /* max number of serial tty devices*/
+#define SETUP_VID_COLS          56      /* video # columns */
 #define SETUP_VID_LINES         18      /* video # lines */
 #define SETUP_CPU_TYPE          CPU_80186  /* processor type */
 #define SETUP_MEM_KBYTES        128     /* base memory in 1K bytes */
@@ -126,6 +126,8 @@
 #define SETUP_USERHEAPSEG       0x1000  /* start segment for appiication memory heap */
 #define MAX_BANKS               16      /* max number of memory banks */
 #define SETUP_MEM_BANKS         (setupw(0x1ea) >> 6) /* memory bank count - "XMS" KBs of RAM / 64 */
+#define DEF_OPTSEG              (setupw(0x1de))      /* 0x400 bytes boot options at lowest usable ram */
+#define OPTSEGSZ                0x400       /* max size of /bootopts file (1024 bytes max) */
 #endif /* CONFIG_ARCH_SWAN */
 
 #ifdef CONFIG_ARCH_SOLO86

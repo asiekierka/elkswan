@@ -474,6 +474,10 @@ int seg_verify_area(pid_t pid, seg_t base, segoff_t offset)
 
 void INITPROC seg_add(seg_t start, seg_t end)
 {
+#ifdef SETUP_MEM_BANKS
+    if (bank_seg_is_rom(start))
+        return;
+#endif
     segment_s * seg = (segment_s *) heap_alloc (sizeof (segment_s), HEAP_TAG_SEG);
     if(seg) {
         seg->base = start;

@@ -50,6 +50,8 @@
 #define mem_kbytes      0x2a            /* word base memory size in Kbytes*/
 #define proc_name       0x30            /* 16 bytes processor name string*/
 #define cpu_id          0x50            /* 13 bytes cpu id string*/
+#define opt_base        0x1de           /* word Base segment of /bootopts */
+#define romfs_base      0x1e0           /* word Base segment of ROM filesystem */
 #define part_offset     0x1e2           /* long sector offset of booted partition*/
 #define elks_magic      0x1e6           /* long "ELKS" (45 4c 4b 53) checked by boot sector*/
 #define xms_kbytes      0x1ea           /* word size of XMS memory in Kbytes*/
