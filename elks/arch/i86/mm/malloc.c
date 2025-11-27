@@ -13,6 +13,7 @@
 
 #ifdef CONFIG_ARCH_SWAN
 #include <arch/io.h>
+#include <arch/swan.h>
 #endif
 #include <arch/segment.h>
 
@@ -501,6 +502,19 @@ void INITPROC mm_init(seg_t start, seg_t end)
 #endif
     list_init (&_seg_all);
     list_init (&_seg_free);
+
+#ifdef CONFIG_ARCH_SWAN
+    if (SETUP_ARCH_TYPE == ARCH_TYPE_SWAN_WITCH) {
+        if (i == 0) {
+            // Bank 0 stores /ram0 contents. Ignore it for now.
+            continue;
+        } else if (i == 3) {
+            // Bank 3 stores the root file system table. Only allocate some of it.
+            seg_add(0x7E00, 0xFFE7);
+            continue; 
+        }
+    }
+#endif
 
     seg_add(start, end);
 #ifdef SETUP_MEM_BANKS

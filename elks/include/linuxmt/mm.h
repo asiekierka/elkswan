@@ -69,6 +69,7 @@ segment_s * seg_dup_bank (segment_s *, bank_t);
 extern list_s __seg_all[];
 #else
 extern list_s _seg_all;
+#define __seg_all (&_seg_all)
 #endif
 
 

@@ -50,6 +50,7 @@
 #define mem_kbytes      0x2a            /* word base memory size in Kbytes*/
 #define proc_name       0x30            /* 16 bytes processor name string*/
 #define cpu_id          0x50            /* 13 bytes cpu id string*/
+#define arch_type       0x1dd           /* byte Architecture type */
 #define opt_base        0x1de           /* word Base segment of /bootopts */
 #define romfs_base      0x1e0           /* word Base segment of ROM filesystem */
 #define part_offset     0x1e2           /* long sector offset of booted partition*/

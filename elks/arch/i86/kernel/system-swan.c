@@ -55,9 +55,16 @@ unsigned int INITPROC setup_arch(void)
 void INITPROC kernel_banner_arch(void) {
     if (inb(SYS_CONTROL_PORT) & SYS_CONTROL_IS_COLOR) {
         if (inb(0x62) & 0x80)
-            printk("SwanCrystal, ");
+            printk("SwanCrystal");
         else
-            printk("WonderSwan Color, ");
+            printk("WonderSwan Color");
     } else
-        printk("WonderSwan, ");
+        printk("WonderSwan");
+
+    if (SETUP_ARCH_TYPE == ARCH_TYPE_SWAN_WITCH)
+        printk("/Witch");
+    else if (SETUP_ARCH_TYPE == ARCH_TYPE_SWAN_NILE)
+        printk("/nile");
+
+    printk(", ");
 }

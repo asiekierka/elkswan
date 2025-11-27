@@ -81,6 +81,11 @@
 !
 !   elkswan introduces a few modifications to pass additional data via setup:
 !
+!   0x1dd:  arch_type   byte Architecture subtype
+!                            - swan
+!                              0: generic
+!                              1: WonderWitch
+!                              2: nileswan
 !   0x1de:  opt_base    word Base segment of /bootopts
 !   0x1e0:  romfs_base  word Base segment of ROM filesystem
 */

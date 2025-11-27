@@ -126,11 +126,7 @@ static int kmem_ioctl(struct inode *inode, struct file *file, int cmd, char *arg
         break;
     // FIXME
     case MEM_GETSEGALL:
-#ifdef SETUP_MEM_BANKS
         retword = (unsigned)__seg_all;
-#else
-        retword = (unsigned)&_seg_all;
-#endif
         break;
     case MEM_GETUPTIME:
 #ifdef CONFIG_CPU_USAGE

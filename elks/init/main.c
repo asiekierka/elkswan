@@ -21,6 +21,7 @@
 #include <arch/ports.h>
 #include <arch/irq.h>
 #include <arch/io.h>
+#include <arch/swan.h>
 
 /*
  *  System variable setups

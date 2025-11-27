@@ -12,6 +12,7 @@
 
 #define CONFIG_FS_DEV           1               /* support FAT /dev folder */
 #define SETUP_ROMFS_BASE        setupw(0x1e0)
+#define SETUP_ARCH_TYPE         setupw(0x1dd)
 
 /*
  * SETUP_ defines are initialzied by setup.S and queried only during kernel init.
@@ -126,7 +127,7 @@
 #define SETUP_USERHEAPSEG       0x1000  /* start segment for appiication memory heap */
 #define MAX_BANKS               16      /* max number of memory banks */
 #define SETUP_MEM_BANKS         (setupw(0x1ea) >> 6) /* memory bank count - "XMS" KBs of RAM / 64 */
-#define DEF_OPTSEG              (setupw(0x1de))      /* 0x400 bytes boot options at lowest usable ram */
+#define DEF_OPTSEG              setupw(0x1de)      /* 0x400 bytes boot options at lowest usable ram */
 #define OPTSEGSZ                0x400       /* max size of /bootopts file (1024 bytes max) */
 #endif /* CONFIG_ARCH_SWAN */
 

@@ -58,3 +58,8 @@
 #define AUD_OUTPUT_PORT 0x91
 
 #define BANK_RAM_PORT 0xC1
+
+#ifdef __KERNEL__
+#define ARCH_TYPE_SWAN_WITCH 0x01
+#define ARCH_TYPE_SWAN_NILE  0x02
+#endif
