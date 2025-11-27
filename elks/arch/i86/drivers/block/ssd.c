@@ -13,6 +13,7 @@
 #include <linuxmt/kernel.h>
 #include <linuxmt/errno.h>
 #include <linuxmt/debug.h>
+#include <arch/swan.h>
 
 #define MAJOR_NR    SSD_MAJOR
 #include "blk.h"
@@ -43,6 +44,11 @@ static struct file_operations ssd_fops = {
 
 void INITPROC ssd_init(void)
 {
+#if defined(CONFIG_ARCH_SWAN)
+    if (SETUP_ARCH_TYPE != ARCH_TYPE_SWAN_NILE)
+        return;
+#endif
+
     if (register_blkdev(MAJOR_NR, DEVICE_NAME, &ssd_fops))
         return;
     blk_dev[MAJOR_NR].request_fn = DEVICE_REQUEST;

@@ -83,6 +83,9 @@ ifeq ($(CONFIG_BLK_DEV_SSD_SD), y)
   ifeq ($(CONFIG_ARCH_8018X), y)
     OBJS += ssd.o ssd-sd.o spi-8018x.o
   endif
+  ifeq ($(CONFIG_ARCH_SWAN), y)
+    OBJS += ssd.o ssd-sd.o spi-swan-nile.o
+  endif
 endif
 
 ifeq ($(CONFIG_BLK_DEV_ATA_CF), y)
