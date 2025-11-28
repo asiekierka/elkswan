@@ -35,8 +35,14 @@ int bank_seg_is_rom(seg_t seg)
 
 static void __bank_seg_copy(seg_t dstseg, bank_t dstb, seg_t srcseg, bank_t srcb, size_t paras)
 {
-    if (srcseg >= 0x2000) {
+    if (srcseg >= 0x2000 || srcseg < 0x1000) {
         outb(dstb, BANK_RAM_PORT);
+        fmemcpyw(0, dstseg, 0, srcseg, paras << 3);
+        return;
+    } else if (SETUP_ARCH_TYPE == ARCH_TYPE_SWAN_NILE) {
+        srcseg += 0x2000;
+        outb(dstb, BANK_RAM_PORT);
+        outw(srcb, 0xD4);
         fmemcpyw(0, dstseg, 0, srcseg, paras << 3);
         return;
     }
@@ -136,18 +142,35 @@ long_t bank_peekl (bank_t bank, word_t off, seg_t seg) {
 }
 
 void bank_pokeb (bank_t bank, word_t off, seg_t seg, byte_t val) {
+    if (seg >= 0x2000) {
+        seg = seg + (off >> 4);
+        off &= 15;
+
+        bank = NILE_BANK_PSRAM_LINEAR_OFFSET + (seg >> 12);
+        seg = (seg & 0xFFF) | 0x1000;
+    }
     BANK_WRAP_START;
     pokeb(off, seg, val);
     BANK_WRAP_END;
 }
 
 void bank_pokew (bank_t bank, word_t off, seg_t seg, word_t val) {
+    if (seg >= 0x2000) {
+        bank_pokeb(bank, off, seg, val);
+        bank_pokeb(bank, off + 1, seg, val >> 8);
+        return;
+    }
     BANK_WRAP_START;
     pokew(off, seg, val);
     BANK_WRAP_END;
 }
 
 void bank_pokel (bank_t bank, word_t off, seg_t seg, long_t val) {
+    if (seg >= 0x2000) {
+        bank_pokew(bank, off, seg, val);
+        bank_pokew(bank, off + 2, seg, val >> 16);
+        return;
+    }
     BANK_WRAP_START;
     pokel(off, seg, val);
     BANK_WRAP_END;

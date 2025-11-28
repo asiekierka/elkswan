@@ -169,7 +169,7 @@ static int FARPROC relocate(seg_t place_base, unsigned long rsize, segment_s *se
             debug_reloc("EXEC: reloc %d,%d,%04x:%04x %04x -> %04x\n",
                 reloc.r_type, reloc.r_symndx, place_base, (word_t)reloc.r_vaddr,
                 peekw((word_t)reloc.r_vaddr, place_base), val);
-            pokew((word_t)reloc.r_vaddr, place_base, val);
+            bank_pokew(bank_get_current(), (word_t)reloc.r_vaddr, place_base, val);
             break;
         default:
             debug_reloc("EXEC: bad relocation type 0x%x\n", reloc.r_type);
@@ -187,6 +187,43 @@ static int FARPROC relocate(seg_t place_base, unsigned long rsize, segment_s *se
     return retval;
 }
 #endif
+
+// Read into a segment_s which may be pointing to PSRAM and thus need a write
+// workaround on swan.
+#define SEG_BUFFER_SIZE 512
+static size_t read_into_seg_maybe_rom(struct inode *inode, struct file *filp, seg_t base, size_t bytes)
+{
+#ifdef SETUP_MEM_BANKS
+    if (bank_seg_is_rom(base)) {
+        // TODO: Use kernel heap for this?
+        segment_s * seg_buffer = seg_alloc(SEG_BUFFER_SIZE >> 4, 0xF);
+        if (!seg_buffer)
+            return 0;
+
+        size_t pos = 0;
+        while (pos < bytes) {
+            size_t to_read = bytes - pos;
+            if (to_read > SEG_BUFFER_SIZE) to_read = SEG_BUFFER_SIZE;
+
+            current->t_regs.ds = seg_buffer->base;
+            size_t has_read = filp->f_op->read(inode, filp, 0, to_read);
+
+            bank_seg_copy(base + (pos >> 4), current->t_membank,
+                seg_buffer->base, bank_get_current(), (has_read + 15) >> 4);
+
+            pos += has_read;
+            if (has_read != to_read)
+                break;
+        }
+
+        seg_put(seg_buffer);
+        return pos;
+    }
+#endif
+
+    current->t_regs.ds = base;
+    return filp->f_op->read(inode, filp, 0, bytes);
+}
 
 static int FARPROC execve_aout(struct inode *inode, struct file *filp,
     char *sptr, size_t slen)
@@ -386,10 +423,15 @@ static int FARPROC execve_aout(struct inode *inode, struct file *filp,
 #endif
         debug_reloc("EXEC: allocating %04x paras (%04x bytes) for text segment(s)\n",
             paras, bytes);
+#ifdef SETUP_MEM_BANKS
+        if (!(esuph.esh_compr_tseg || esuph.esh_compr_ftseg))
+            seg_code = seg_alloc(paras, SEG_FLAG_CSEG | SEG_FLAG_ROM);
+        if (!seg_code)
+#endif
         seg_code = seg_alloc(paras, SEG_FLAG_CSEG);
         if (!seg_code) goto error_exec3;
         currentp->t_regs.ds = seg_code->base;
-        retval = filp->f_op->read(inode, filp, 0, bytes);
+        retval = read_into_seg_maybe_rom(inode, filp, seg_code->base, bytes);
         if (retval != bytes) {
             debug("EXEC(tseg read): bad result %u, expected %u\n", retval, bytes);
             goto error_exec4;
@@ -400,9 +442,6 @@ static int FARPROC execve_aout(struct inode *inode, struct file *filp,
             decompress(0, seg_code->base, (size_t)mh.tseg, bytes, 16) != (size_t)mh.tseg)
                 goto error_exec4;
 #endif
-#ifdef SETUP_MEM_BANKS
-        seg_code = seg_copy_to_pseudo_rom(seg_code, currentp->t_membank);
-#endif
 #ifdef CONFIG_EXEC_MMODEL
         bytes = esuph.esh_ftseg;
         if (bytes) {
@@ -410,8 +449,7 @@ static int FARPROC execve_aout(struct inode *inode, struct file *filp,
             if (esuph.esh_compr_ftseg)
                 bytes = esuph.esh_compr_ftseg;
 #endif
-            currentp->t_regs.ds = seg_code->base + bytes_to_paras((size_t)mh.tseg);
-            retval = filp->f_op->read(inode, filp, 0, bytes);
+            retval = read_into_seg_maybe_rom(inode, filp, seg_code->base + bytes_to_paras((size_t)mh.tseg), bytes);
             if (retval != bytes) {
                 debug("EXEC(ftseg read): bad result %u, expected %u\n", retval, bytes);
                 goto error_exec4;
@@ -687,7 +725,7 @@ static int FARPROC execve_os2(struct inode *inode, struct file *filp,
 
         if (!(mm_table[seg] = seg_alloc(paras, (segp->flags & NESEG_DATA)
                 ? ((seg+1 == os2hdr.auto_data_segment)? SEG_FLAG_DSEG: SEG_FLAG_DDAT)
-                : SEG_FLAG_CSEG))) {
+                : (SEG_FLAG_CSEG | SEG_FLAG_ROM)))) {
             retval = -ENOMEM;
             goto errout2;
         }
@@ -713,10 +751,9 @@ static int FARPROC execve_os2(struct inode *inode, struct file *filp,
     for(seg = 0; seg < os2hdr.num_segments; seg++) {
         segp = &ne_segment_table[seg];
         filp->f_pos = (unsigned long)segp->offset << os2hdr.file_alignment_shift_count;
-        current->t_regs.ds = mm_table[seg]->base;
         debug_os2("Reading seg %d %04x:0000 %u bytes offset %04lx\n", seg+1,
             current->t_regs.ds, segp->size, filp->f_pos);
-        retval = filp->f_op->read(inode, filp, 0, segp->size);
+        retval = read_into_seg_maybe_rom(inode, filp, mm_table[seg]->base, segp->size);
         if (retval != segp->size) goto errout2;
 
         current->t_regs.ds = kernel_ds;
@@ -747,7 +784,7 @@ static int FARPROC execve_os2(struct inode *inode, struct file *filp,
                     debug_reloc2("pokew %04x:%04x <- seg %d %04x\n",
                         mm_table[seg]->base, reloc.src_chain,
                         reloc.segment, mm_table[reloc.segment-1]->base);
-                    pokew(reloc.src_chain, mm_table[seg]->base,
+                    bank_pokew(bank_get_current(), reloc.src_chain, mm_table[seg]->base,
                         mm_table[reloc.segment-1]->base);
                     break;
                 case NEFIXSRC_FARADDR:
@@ -755,16 +792,16 @@ static int FARPROC execve_os2(struct inode *inode, struct file *filp,
                         debug_reloc2("pokew %04x:%04x += offset %04x\n",
                             mm_table[seg]->base, reloc.src_chain, reloc.offset);
                         word_t prev = peekw(reloc.src_chain, mm_table[seg]->base);
-                        pokew(reloc.src_chain, mm_table[seg]->base, prev+reloc.offset);
+                        bank_pokew(bank_get_current(), reloc.src_chain, mm_table[seg]->base, prev+reloc.offset);
                     } else {
                         debug_reloc2("pokew %04x:%04x = offset %04x\n",
                             mm_table[seg]->base, reloc.src_chain, reloc.offset);
-                        pokew(reloc.src_chain, mm_table[seg]->base, reloc.offset);
+                        bank_pokew(bank_get_current(), reloc.src_chain, mm_table[seg]->base, reloc.offset);
                     }
                     debug_reloc2("pokew %04x:%04x <- seg %d %04x\n",
                         mm_table[seg]->base, reloc.src_chain+2,
                         reloc.segment, mm_table[reloc.segment-1]->base);
-                    pokew(reloc.src_chain+2, mm_table[seg]->base,
+                    bank_pokew(bank_get_current(), reloc.src_chain+2, mm_table[seg]->base,
                         mm_table[reloc.segment-1]->base);
                     break;
                 }

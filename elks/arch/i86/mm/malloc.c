@@ -75,14 +75,21 @@ static segment_s * seg_split (segment_s * s1, segext_t size0)
 
 static segment_s * seg_free_get (segext_t size0, word_t type)
 {
+#ifdef SETUP_MEM_BANKS
+    bank_t bank = (type & SEG_FLAG_ROM) ? 0 : bank_get_current();
+    list_s * free = &__seg_free[bank];
+#else
+    list_s * free = &_seg_free;
+#endif
+
     // First get the smallest suitable free segment
 
     segment_s * best_seg  = 0;
     segext_t best_size = 0xFFFF;
-    list_s * n = _seg_free.next;
+    list_s * n = free->next;
     segext_t size00 = size0, incr = 0;
 
-    while (n != &_seg_free) {
+    while (n != free) {
         segment_s * seg = structof (n, segment_s, free);
         segext_t size1 = seg->size;
 
@@ -92,6 +99,7 @@ static segment_s * seg_free_get (segext_t size0, word_t type)
             continue;
         }
 #endif
+    
         if (type & SEG_FLAG_ALIGN1K)
             size00 = size0 + ((~seg->base + 1) & ((1024 >> 4) - 1));
         if ((seg->flags == SEG_FLAG_FREE) && (size1 >= size00) && (size1 < best_size)) {
@@ -110,8 +118,10 @@ static segment_s * seg_free_get (segext_t size0, word_t type)
         seg_split (best_seg, size00);               // split off upper segment
         if (incr)
             best_seg = seg_split (best_seg, incr);  // split off lower segment
-
-        best_seg->flags = (SEG_FLAG_USED | type) & ~SEG_FLAG_ROM;
+#ifdef SETUP_MEM_BANKS
+        best_seg->bank = bank;
+#endif
+        best_seg->flags = SEG_FLAG_USED | type;
         best_seg->ref_count = 1;
         list_remove (&(best_seg->free));
     }
@@ -175,12 +185,18 @@ void seg_free (segment_s * seg)
     }
 #endif
 
+#ifdef SETUP_MEM_BANKS
+    list_s * free = &__seg_free[seg->bank];
+#else
+    list_s * free = &_seg_free;
+#endif
+
     // Free segment will be inserted to free list:
     //   - tail if merged to previous or next free segment
     //   - head if still alone to increase 'exact hit'
     //     chance on next allocation of same size
 
-    list_s * i = &_seg_free;
+    list_s * i = free;
     seg->flags = SEG_FLAG_FREE;
     seg->pid = 0;
 
@@ -191,7 +207,7 @@ void seg_free (segment_s * seg)
         if ((prev->flags == SEG_FLAG_FREE) && (prev->base + prev->size == seg->base)) {
             list_remove (&(prev->free));
             seg_merge (prev, seg);
-            i = _seg_free.prev;
+            i = free->prev;
             seg = prev;
         }
     }
@@ -204,7 +220,7 @@ void seg_free (segment_s * seg)
         if ((next->flags == SEG_FLAG_FREE) && (seg->base + seg->size == next->base)) {
             list_remove (&(next->free));
             seg_merge (seg, next);
-            i = _seg_free.prev;
+            i = free->prev;
         }
     }
 

@@ -12,6 +12,9 @@ struct segment {
 	byte_t    flags;
 	byte_t    ref_count;
 	word_t    pid;
+#ifdef SETUP_MEM_BANKS
+	bank_t    bank;
+#endif
 };
 
 typedef struct segment segment_s;

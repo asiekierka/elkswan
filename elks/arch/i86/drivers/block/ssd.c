@@ -44,7 +44,7 @@ static struct file_operations ssd_fops = {
 
 void INITPROC ssd_init(void)
 {
-#if defined(CONFIG_ARCH_SWAN)
+#ifdef CONFIG_ARCH_SWAN
     if (SETUP_ARCH_TYPE != ARCH_TYPE_SWAN_NILE)
         return;
 #endif
