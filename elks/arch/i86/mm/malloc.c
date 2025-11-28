@@ -510,7 +510,7 @@ void INITPROC mm_init(seg_t start, seg_t end)
             continue;
         } else if (i == 3) {
             // Bank 3 stores the root file system table. Only allocate some of it.
-            seg_add(0x7E00, 0xFFE7);
+            seg_add(0x17E0, 0x1FFE);
             continue; 
         }
     }
