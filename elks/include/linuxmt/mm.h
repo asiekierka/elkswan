@@ -20,6 +20,7 @@ typedef struct segment segment_s;
 #define SEG_FLAG_FREE    0x00
 #define SEG_FLAG_USED	 0x80
 #define SEG_FLAG_ALIGN1K 0x40
+#define SEG_FLAG_ROM     0x20
 #define SEG_FLAG_TYPE	 0x0F
 #define SEG_FLAG_CSEG	 0x01   /* app code segment */
 #define SEG_FLAG_DSEG	 0x02   /* app auto (stack/heap) data segment */
@@ -66,6 +67,7 @@ void seg_free_pid(pid_t pid);
 #ifdef SETUP_MEM_BANKS
 unsigned char seg_find_free_bank (void);
 segment_s * seg_dup_bank (segment_s *, bank_t);
+segment_s * seg_copy_to_pseudo_rom (segment_s *, bank_t);
 extern list_s __seg_all[];
 #else
 extern list_s _seg_all;

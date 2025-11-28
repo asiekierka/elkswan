@@ -208,8 +208,10 @@
 /* Define segment locations of low memory, must not overlap */
 
 #ifdef CONFIG_ROMCODE
+#ifndef CONFIG_ARCH_SWAN
 #define DMASEG          0x80        /* start of floppy sector buffer */
 #define KERNEL_DATA     DMASEGEND   /* kernel data segment */
+#endif
 #define SETUP_DATA      CONFIG_ROM_SETUP_DATA
 
 #else /* !CONFIG_ROMCODE */

@@ -33,9 +33,13 @@ int bank_seg_is_rom(seg_t seg)
     return seg >= 0x2000;
 }
 
-void bank_seg_copy(seg_t dstseg, bank_t dstb, seg_t srcseg, bank_t srcb, size_t paras)
+static void __bank_seg_copy(seg_t dstseg, bank_t dstb, seg_t srcseg, bank_t srcb, size_t paras)
 {
-    bank_t cur_bank = bank_get_current();
+    if (srcseg >= 0x2000) {
+        outb(dstb, BANK_RAM_PORT);
+        fmemcpyw(0, dstseg, 0, srcseg, paras << 3);
+        return;
+    }
 
     const unsigned int __far *srcp = _MK_FP(srcseg, 0);
     unsigned int __far *destp = _MK_FP(dstseg, 0);
@@ -51,6 +55,32 @@ void bank_seg_copy(seg_t dstseg, bank_t dstb, seg_t srcseg, bank_t srcb, size_t 
         asm volatile ("" ::: "memory");
         destp[i] = c;
     }
+}
+
+void bank_seg_copy(seg_t dstseg, bank_t dstb, seg_t srcseg, bank_t srcb, size_t paras)
+{
+    // printk("bank_seg_copy %04x %02x %04x %02x %d\n", dstseg, dstb, srcseg, srcb, paras);
+    
+    bank_t cur_bank = bank_get_current();
+
+    if (SETUP_ARCH_TYPE == ARCH_TYPE_SWAN_NILE) {
+        if (dstseg >= 0x2000) {
+            dstb = NILE_BANK_PSRAM_LINEAR_OFFSET + (dstseg >> 12);
+            dstseg = (dstseg & 0xFFF) | 0x1000;
+
+            // Handle cross-RAM-bank copies
+            while (dstseg + paras > 0x2000) {
+                size_t paras_part = 0x2000 - dstseg;
+                __bank_seg_copy(dstseg, dstb, srcseg, srcb, paras_part);
+                paras -= paras_part;
+                srcseg += paras_part;
+                dstseg = 0x1000;
+                dstb++;
+            }
+        }
+    }
+
+    __bank_seg_copy(dstseg, dstb, srcseg, srcb, paras);
 
     bank_set_current(cur_bank);
 }

@@ -86,6 +86,12 @@ static segment_s * seg_free_get (segext_t size0, word_t type)
         segment_s * seg = structof (n, segment_s, free);
         segext_t size1 = seg->size;
 
+#ifdef SETUP_MEM_BANKS
+        if (((type & SEG_FLAG_ROM)?1:0) != (bank_seg_is_rom(seg->base)?1:0)) {
+            n = seg->free.next;
+            continue;
+        }
+#endif
         if (type & SEG_FLAG_ALIGN1K)
             size00 = size0 + ((~seg->base + 1) & ((1024 >> 4) - 1));
         if ((seg->flags == SEG_FLAG_FREE) && (size1 >= size00) && (size1 < best_size)) {
@@ -105,7 +111,7 @@ static segment_s * seg_free_get (segext_t size0, word_t type)
         if (incr)
             best_seg = seg_split (best_seg, incr);  // split off lower segment
 
-        best_seg->flags = SEG_FLAG_USED | type;
+        best_seg->flags = (SEG_FLAG_USED | type) & ~SEG_FLAG_ROM;
         best_seg->ref_count = 1;
         list_remove (&(best_seg->free));
     }
@@ -251,7 +257,7 @@ unsigned char seg_find_free_bank (void)
         while (n != &__seg_all[i]) {
             segment_s * seg = structof (n, segment_s, all);
 
-            if (seg->flags == SEG_FLAG_FREE)
+            if (seg->flags == SEG_FLAG_FREE && !bank_seg_is_rom(seg->base))
                 free += seg->size;
 
             n = seg->all.next;
@@ -277,11 +283,31 @@ segment_s * seg_dup_bank (segment_s * src, bank_t bank)
         return seg_dup(src);
     bank_set_current(bank);
 
-    segment_s * dst = seg_free_get (size, flags);
+    segment_s * dst = seg_free_get (size, flags & ~SEG_FLAG_USED);
     if (dst)
         bank_seg_copy(dst->base, bank, src->base, cur_bank, size);
 
     bank_set_current(cur_bank);
+    return dst;
+}
+
+segment_s * seg_copy_to_pseudo_rom (segment_s * src, bank_t bank)
+{
+    unsigned int size = src->size;
+    unsigned int flags = src->flags;
+
+    bank_t cur_bank = bank_get_current();
+    bank_set_current(0);
+    segment_s * dst = seg_free_get (size, (flags & ~SEG_FLAG_USED) | SEG_FLAG_ROM);
+    bank_set_current(cur_bank);
+
+    if (dst) {
+        bank_seg_copy(dst->base, cur_bank, src->base, cur_bank, size);
+        seg_put(src);
+    } else {
+        dst = src;
+    }
+
     return dst;
 }
 #endif
@@ -475,10 +501,6 @@ int seg_verify_area(pid_t pid, seg_t base, segoff_t offset)
 
 void INITPROC seg_add(seg_t start, seg_t end)
 {
-#ifdef SETUP_MEM_BANKS
-    if (bank_seg_is_rom(start))
-        return;
-#endif
     segment_s * seg = (segment_s *) heap_alloc (sizeof (segment_s), HEAP_TAG_SEG);
     if(seg) {
         seg->base = start;
@@ -517,6 +539,13 @@ void INITPROC mm_init(seg_t start, seg_t end)
 #endif
 
     seg_add(start, end);
+
+#ifdef CONFIG_ARCH_SWAN
+    if (SETUP_ARCH_TYPE == ARCH_TYPE_SWAN_NILE && i == 0) {
+        // On nile, ROM can be allocated
+        seg_add(0x4000, 0xFFFF);
+    }
+#endif
 #ifdef SETUP_MEM_BANKS
     }
 #endif

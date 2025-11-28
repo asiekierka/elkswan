@@ -400,6 +400,9 @@ static int FARPROC execve_aout(struct inode *inode, struct file *filp,
             decompress(0, seg_code->base, (size_t)mh.tseg, bytes, 16) != (size_t)mh.tseg)
                 goto error_exec4;
 #endif
+#ifdef SETUP_MEM_BANKS
+        seg_code = seg_copy_to_pseudo_rom(seg_code, currentp->t_membank);
+#endif
 #ifdef CONFIG_EXEC_MMODEL
         bytes = esuph.esh_ftseg;
         if (bytes) {

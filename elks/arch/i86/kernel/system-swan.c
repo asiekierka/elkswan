@@ -47,6 +47,10 @@ unsigned int INITPROC setup_arch(void)
 
     if (SETUP_MEM_BANKS <= 0)
         panic("Not enough memory banks");
+    else if (SETUP_ARCH_TYPE == ARCH_TYPE_SWAN_NILE) {
+        outb(NILE_BANK_PSRAM_LINEAR_OFFSET + 3, BANK_ROM1_PORT);
+        outb(NILE_BANK_PSRAM_LINEAR_OFFSET >> 4, BANK_ROML_PORT);
+    }
     bank_set_current(0);
 
     return heapofs;                      /* used as start address in near heap init */
