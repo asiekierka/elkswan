@@ -26,6 +26,7 @@
 #define NILE_BANK_RAM_SPI_TX 15
 #define NILE_BANK_ROM_SPI_RX 510
 
+#define NILE_BANK_FLASH_PORT 0xCE
 #define NILE_BANK_RAM_PORT  0xD0
 #define NILE_BANK_ROM1_PORT 0xD4
 #define RAM_SEG  0x1000
@@ -49,9 +50,12 @@ void spi_init_ll(void) {
 }
 
 void spi_transmit(uint8_t data) {
+    uint8_t ram_flash = inb(NILE_BANK_FLASH_PORT);
     uint16_t ram_bank = inw(NILE_BANK_RAM_PORT);
+    outb(0, NILE_BANK_FLASH_PORT);
     outw(NILE_BANK_RAM_SPI_TX, NILE_BANK_RAM_PORT);
     pokeb(0, RAM_SEG, data);
+    outb(ram_flash, NILE_BANK_FLASH_PORT);
     outw(ram_bank, NILE_BANK_RAM_PORT);
 
     spi_wait_busy();
