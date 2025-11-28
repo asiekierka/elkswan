@@ -155,9 +155,13 @@ static void list_buffer_status(void)
 
     do {
         ebh = EBH(bh);
-        isinuse = ebh->b_count || ebh->b_dirty || ebh->b_locked || ebh->b_mapcount;
+        isinuse = ebh->b_count || ebh->b_dirty || ebh->b_locked;
+#ifdef CONFIG_FS_EXTERNAL_BUFFER
+        isinuse |= ebh->b_mapcount;
+#endif
         if (isinuse || bh->b_data) {
             j = 0;
+#ifdef CONFIG_FS_EXTERNAL_BUFFER
             if (bh->b_data) {
                 for (; j<nr_map_bufs; j++) {
                     if (L1map[j] == bh) {
@@ -166,12 +170,19 @@ static void list_buffer_status(void)
                     }
                 }
             }
-            printk("\n#%3d: blk/dev %5ld/%p %c%c%c %smapped L%02d %d count %d",
-                buf_num(bh), ebh->b_blocknr, ebh->b_dev,
+#endif
+            printk("\n#%3d: buf %3d blk/dev %5ld/%p %c%c%c %smapped L%02d %d count %d",
+                i, buf_num(bh), ebh->b_blocknr, ebh->b_dev,
                 ebh->b_locked?  'L': ' ',
                 ebh->b_dirty?   'D': ' ',
                 ebh->b_uptodate?'U': ' ',
-                j? "  ": "un", j, ebh->b_mapcount, ebh->b_count);
+                j? "  ": "un", j,
+#ifdef CONFIG_FS_EXTERNAL_BUFFER
+                ebh->b_mapcount,
+#else
+                0,
+#endif
+                ebh->b_count);
         }
         if (isinuse) inuse++;
     } while ((bh = ebh->b_prev_lru) != NULL);
@@ -389,7 +400,7 @@ static struct buffer_head *get_free_buffer(void)
         }
         ebh = EBH(bh);
     }
-#ifdef CHECK_BLOCKIO
+#if defined(CHECK_BLOCKIO) && defined(CONFIG_FS_EXTERNAL_BUFFER)
     if (ebh->b_mapcount) panic("get_free_buffer"); /* mapped buffer reallocated */
 #endif
     put_last_lru(bh);
