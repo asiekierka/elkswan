@@ -69,7 +69,11 @@ set_color(int color)
      case Score:   fg = 37; bg = 49; break;
      }
 
+#ifdef CONFIG_ARCH_SWAN
+     printf("\033[%d;%dm", fg ? fg : bg, 0);
+#else
      printf("\033[%d;%dm", fg, bg);
+#endif
 
      return;
 }
@@ -77,7 +81,13 @@ set_color(int color)
 void
 printxy(int color, int x, int y, char *str)
 {
+     
      set_color(color);
+#ifdef CONFIG_ARCH_SWAN
+     if (str[0] == '\xDB' && color == Black)
+          printf("\033[%d;%dH ", ++x, ++y);
+     else
+#endif
      printf("\033[%d;%dH%s", ++x, ++y, str);
      set_color(0);
 

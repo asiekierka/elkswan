@@ -73,7 +73,11 @@ frame_refresh(void)
      for(i = 0; i < FRAMEH + 1; ++i) {
           for(j = 0; j < FRAMEW + 1; ++j) {
                if(frame[i][j] != frame_prev[i][j]) {
+#ifdef CONFIG_ARCH_SWAN
+                    printxy(frame[i][j], i, j, "\xDB");
+#else
                     printxy(frame[i][j], i, j, " ");
+#endif
                     frame_prev[i][j] = frame[i][j];
                }
           }

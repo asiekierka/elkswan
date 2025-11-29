@@ -37,6 +37,7 @@
 #include <signal.h>
 #include <termios.h>
 #include <sys/time.h>
+#include <linuxmt/config.h>
 
 /* Configuration of tty-tetris
  * Need to re-compile to set the change.
@@ -65,12 +66,17 @@
 #define EXP_FACT 2
 
 /* Frame dimension */
+#ifdef CONFIG_ARCH_SWAN
+#define FRAMEW 23
+#define FRAMEH 16
+#else
 #ifdef _M_I86
 #define FRAMEW 23
 #define FRAMEH 20
 #else
 #define FRAMEW (int)(10*2.3)
 #define FRAMEH (int)(9*2.3)
+#endif
 #endif
 #define FRAMEW_NB 15
 #define FRAMEH_NB 5
