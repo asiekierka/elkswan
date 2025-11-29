@@ -424,7 +424,9 @@ static int FARPROC execve_aout(struct inode *inode, struct file *filp,
         debug_reloc("EXEC: allocating %04x paras (%04x bytes) for text segment(s)\n",
             paras, bytes);
 #ifdef SETUP_MEM_BANKS
+#ifdef CONFIG_EXEC_COMPRESS
         if (!(esuph.esh_compr_tseg || esuph.esh_compr_ftseg))
+#endif
             seg_code = seg_alloc(paras, SEG_FLAG_CSEG | SEG_FLAG_ROM);
         if (!seg_code)
 #endif
