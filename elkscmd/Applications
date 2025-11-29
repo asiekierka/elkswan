@@ -89,7 +89,7 @@ sys_utils/chmem                 :sysutil            :720k
 sys_utils/kill                  :sysutil        :360c :720k
 sys_utils/ps            :sash   :sysutil        :360k           :128k       :nocomp
 sys_utils/ps :::uptime          :sysutil                        :128k   :1440k
-sys_utils/makeboot              :sysutil        :360k
+#sys_utils/makeboot              :sysutil        :360k
 sys_utils/man                   :sysutil                                :1440k
 sys_utils/meminfo       :sash   :sysutil        :360k           :128k
 sys_utils/mouse                 :sysutil                 :1200c     :1440k
@@ -175,14 +175,14 @@ disk_utils/ramdisk              :diskutil       :360c   :1200k
 disk_utils/fdisk                :be-diskutil    :360k
 fsck_dos/fsck-dos               :diskutil               :1200k
 tui/fm                          :tui                    :1200k
-tui/matrix                      :tui            :360c   :1200k
-tui/cons                        :tui                            :1440k
+#tui/matrix                      :tui            :360c   :1200k
+#tui/cons                        :tui                            :1440k
 tui/ttyinfo                     :tui                            :1440k
 tui/sl                          :tui                    :1200k
 tui/ttyclock                    :tui            :360c   :1200k
-tui/ttypong                     :tui                            :1440k
+#tui/ttypong                     :tui                            :1440k
 tui/tetris                      :tui            :360c
-tui/invaders                    :tui                    :1232k  :1440k
+#tui/invaders                    :tui                    :1232k  :1440k
 gui/paint                           :gui                        :1440k
 gui/images/cls.bmp  ::lib/cls.bmp   :gui                        :1440k
 gui/images/save.bmp ::lib/save.bmp  :gui                        :1440k
