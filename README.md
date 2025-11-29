@@ -32,16 +32,17 @@ Requirements:
 
 |   | WonderWitch | nileswan | Generic flashcart |
 | - | ----------- | -------- | ----------------- |
-| Process RAM | 3 x 64 KiB | 8 x 64 KiB (WIP) | Depends |
+| Process RAM | ~2.5 x 64 KiB | 16 x 64 KiB + 768 KiB | Depends |
 | Maximum ROMFS size | ~320 KiB | 732 KiB (WIP) | Up to 704 KiB (WIP) |
 | Real-Time Clock | WIP | WIP | :x: |
-| FAT support | :x: | WIP | :x: |
+| FAT support | :x: | :white_check_mark: | :x: |
 | USB serial port | :x: | WIP | :x: |
 
 Notes:
 
 * Fields marked "WIP" refer to current functionality that may be improved or expanded in the future.
 * An emulator without special configuration counts as a "generic flashcart".
+* On nileswan, the 768 KiB is only used for code segments, and is shared between all processes.
 
 ### Potential future targets
 
